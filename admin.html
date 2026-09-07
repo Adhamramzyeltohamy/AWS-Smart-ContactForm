@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Messages AI Portal</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .refresh-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 20px;
+            transition: background 0.2s;
+        }
+        .refresh-btn:hover { background-color: #0056b3; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #e9ecef;
+        }
+        th {
+            background-color: #f1f3f5;
+            color: #495057;
+        }
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            display: inline-block;
+        }
+        .badge-critical { background-color: #dc3545; }
+        .badge-high { background-color: #fd7e14; }
+        .badge-medium { background-color: #ffc107; color: #333; }
+        .badge-low { background-color: #28a745; }
+        
+        .sentiment {
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .sentiment-POSITIVE { color: #28a745; }
+        .sentiment-NEGATIVE { color: #dc3545; }
+        .sentiment-NEUTRAL { color: #6c757d; }
+        .sentiment-MIXED { color: #fd7e14; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>لوحة تحكم الإدارة (AI Admin Portal)</h1>
+    <button class="refresh-btn" onclick="fetchMessages()">تحديث البيانات 🔄</button>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>التاريخ</th>
+                <th>الاسم</th>
+                <th>البريد</th>
+                <th>الموضوع والرسالة</th>
+                <th>القسم</th>
+                <th>المشاعر (Sentiment)</th>
+                <th>الأولوية</th>
+            </tr>
+        </thead>
+        <tbody id="messagesTableBody">
+            <tr><td colspan="7" style="text-align:center;">جاري تحميل الرسائل...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // الرابط المباشر للـ API الخاص بك
+    const API_GET_URL = "https://l8xvbka1pd.execute-api.eu-north-1.amazonaws.com/new/messages";
+
+    async function fetchMessages() {
+        const tableBody = document.getElementById('messagesTableBody');
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">جاري تحديث البيانات...</td></tr>';
+
+        try {
+            const response = await fetch(API_GET_URL, {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json"
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`خطأ في استجابة السيرفر (الكود: ${response.status})`);
+            }
+
+            const data = await response.json();
+            tableBody.innerHTML = '';
+
+            if(!Array.isArray(data) || data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">لا توجد رسائل مسجلة بعد.</td></tr>';
+                return;
+            }
+
+            // ترتيب الرسائل زمنيًا من الأحدث للقديم
+            data.sort((a, b) => new Date(b.Timestamp || 0) - new Date(a.Timestamp || 0));
+
+            data.forEach(msg => {
+                const priorityClass = `badge-${(msg.Priority || 'low').toLowerCase()}`;
+                const sentimentClass = `sentiment-${msg.Sentiment || 'NEUTRAL'}`;
+
+                const row = `
+                    <tr>
+                        <td>${msg.Timestamp ? new Date(msg.Timestamp).toLocaleString('ar-EG') : 'غير محدد'}</td>
+                        <td>${msg.Name || 'مجهول'}</td>
+                        <td>${msg.Email || '-'}</td>
+                        <td>
+                            <strong>${msg.Subject || 'بدون عنوان'}</strong><br>
+                            <small style="color: #6c757d;">${msg.Message || ''}</small>
+                        </td>
+                        <td>${msg.Category || 'General'}</td>
+                        <td><span class="sentiment ${sentimentClass}">${msg.Sentiment || 'NEUTRAL'}</span></td>
+                        <td><span class="badge ${priorityClass}">${msg.Priority || 'LOW'}</span></td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        } catch (error) {
+            console.error("Fetch Error:", error);
+            tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: red;">حدث خطأ أثناء جلب الرسائل: ${error.message}</td></tr>`;
+        }
+    }
+
+    // جلب البيانات تلقائيًا فور تحميل الصفحة
+    window.onload = fetchMessages;
+</script>
+</body>
+</html>
