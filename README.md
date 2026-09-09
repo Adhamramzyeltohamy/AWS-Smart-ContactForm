@@ -44,7 +44,42 @@ A production-ready, highly available, secure, and scalable serverless contact fo
 
 ---
 
-## 🚀 Deployment Steps
+## 🛠️ Detailed Step-by-Step Implementation Guide
+
+### Step 1: Storage & Frontend Preparation (Amazon S3)
+1. Created a private Amazon S3 Bucket to store static web files (`index.html` and `admin.html`).
+2. Disabled public access entirely (`Block Public Access: ON`) to enforce security best practices.
+3. Uploaded static assets with proper MIME types (`text/html`).
+
+### Step 2: Content Delivery & Edge Security (Amazon CloudFront)
+1. Created a CloudFront Web Distribution targeting the S3 bucket origin.
+2. Implemented **Origin Access Control (OAC)** to ensure S3 objects are only readable via CloudFront.
+3. Configured `index.html` as the Default Root Object.
+4. Attached a custom **CloudFront Function** at the viewer request event to intercept `/admin.html` requests and validate HTTP Basic Authentication headers before passing traffic.
+
+### Step 3: Database & Notification Setup (DynamoDB & SNS)
+1. Created a DynamoDB Table named `ContactFormMessages` with `MessageId` (String) as the Partition Key and On-Demand capacity.
+2. Created two **Amazon SNS Topics**:
+   - `Critical-Alerts-Topic`: For urgent notifications and negative-sentiment messages.
+   - `General-Feedback-Topic`: For standard incoming submissions.
+3. Created Email Subscriptions under both topics and confirmed subscription tokens via inbox verification.
+
+### Step 4: Core Logic & AI Integration (AWS Lambda & Amazon Comprehend)
+1. Provisioned an AWS Lambda function using the **Python 3.12** runtime.
+2. Configured Lambda IAM execution role with minimal privileges (`AWSLambdaBasicExecutionRole`, custom inline policies for `comprehend:DetectSentiment`, `dynamodb:PutItem`, and `sns:Publish`).
+3. Set up Lambda **Environment Variables** (`TABLE_NAME`, `CRITICAL_SNS_ARN`, `GENERAL_SNS_ARN`).
+4. Integrated **Amazon Comprehend** (`boto3.client('comprehend')`) inside the handler to perform real-time sentiment analysis on incoming messages, assigning priority categories (`CRITICAL` vs `LOW`/`MEDIUM`).
+
+### Step 5: API Endpoint & CORS Configuration (Amazon API Gateway)
+1. Built a REST API in API Gateway with a `/messages` resource endpoint supporting `POST` and `OPTIONS` methods.
+2. Integrated the `POST` method with the Lambda function via **Lambda Proxy Integration**.
+3. Enabled **CORS** headers (`Access-Control-Allow-Origin`, `Access-Control-Allow-Headers`, `Access-Control-Allow-Methods`) across API Gateway and Lambda response payloads to eliminate browser cross-origin blocking.
+4. Configured **Throttling & Rate-Limiting** settings (Rate Limit: 5 req/sec, Burst: 10) to guard against DDoS and spam attacks.
+5. Deployed the API to a production stage (`prod`) and linked its URL to the frontend JavaScript scripts.
+
+---
+
+## 🚀 Deployment Summary
 1. Upload static files (`index.html`, `admin.html`) to your private S3 Bucket.
 2. Setup Amazon CloudFront Distribution linked via Origin Access Control (OAC).
 3. Create Amazon DynamoDB Table `ContactFormMessages` with Partition Key `MessageId`.
