@@ -4,34 +4,32 @@ A production-ready, highly available, secure, and scalable serverless contact fo
 
 ---
 
-## 📐 Architecture Diagram
-![AWS Architecture Diagram](images/architecture.png)
+## 📐 System Architecture
+![AWS Architecture Diagram](image/arc.png)
 
 ---
 
 ## 📸 System Screenshots & AWS Console Proofs
 
 ### 1. Frontend & Edge Security (S3, CloudFront & Basic Auth)
-| Public Contact Form | Basic Auth Protection | S3 Bucket Objects |
+| Public Contact Form | Basic Auth Protection | S3 Bucket Hosting |
 | :---: | :---: | :---: |
-| ![Contact Form](images/contact-form.png) | ![Basic Auth Prompt](images/basic-auth.png) | ![S3 Hosting](images/s3-bucket.png) |
+| ![Contact Form](image/dash1.jpeg) | ![Basic Auth Prompt](image/admin%20pass.jpeg) | ![S3 Hosting](image/S3.jpeg) |
 
 | CloudFront CDN Distribution | Protected Admin Dashboard |
 | :---: | :---: |
-| ![CloudFront](images/cloudfront.png) | ![Admin Panel](images/admin-dashboard.png) |
-
-
+| ![CloudFront](image/cloud%20foront.jpeg) | ![Admin Panel](image/admin.jpeg) |
 
 ---
 
 ### 2. Backend Logic, AI Processing & Storage
 | API Gateway REST Setup | Lambda Environment Variables |
 | :---: | :---: |
-| ![API Gateway](images/api-gateway.png) | ![Lambda Config](images/lambda-env.png) |
+| ![API Gateway](image/api.jpeg) | ![Lambda Config](image/lam%20inv.jpeg) |
 
 | DynamoDB Live Records | Amazon SNS Topics |
 | :---: | :---: |
-| ![DynamoDB Items](images/dynamodb.png) | ![SNS Topics](images/sns-topics.png) |
+| ![DynamoDB Items](image/dynamo%20.jpeg) | ![SNS Topics](image/SNS.jpeg) |
 
 ---
 
@@ -46,9 +44,9 @@ A production-ready, highly available, secure, and scalable serverless contact fo
 
 ---
 
-## 🚀 How to Run & Deploy
+## 🚀 Deployment Steps
 1. Upload static files (`index.html`, `admin.html`) to your private S3 Bucket.
 2. Setup Amazon CloudFront Distribution linked via Origin Access Control (OAC).
-3. Create Amazon DynamoDB Table `ContactFormMessages` with Primary Key `MessageId`.
-4. Deploy AWS Lambda function with proper IAM roles to access Comprehend, DynamoDB, and SNS.
+3. Create Amazon DynamoDB Table `ContactFormMessages` with Partition Key `MessageId`.
+4. Deploy AWS Lambda function with proper IAM permissions to access Comprehend, DynamoDB, and SNS.
 5. Create REST API on API Gateway and enable CORS before linking Lambda Proxy integration.
